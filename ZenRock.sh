@@ -209,16 +209,127 @@ EOF
     echo "验证人创建完成！"
 }
 
-# 委托质押函数
-function delegate_stake() {
-    read -p "请输入质押金额 (默认 1000000): " STAKE_AMOUNT
-    STAKE_AMOUNT=${STAKE_AMOUNT:-1000000}  # 如果没有输入，则默认为 1000000
+# 查看余额函数
+function check_balance() {
+    echo "正在查看余额..."
+    zenrockd q bank balances $(zenrockd keys show wallet -a)
+}
 
-    echo "正在委托质押 $STAKE_AMOUNT uro"
-    zenrockd tx validation delegate $(zenrockd keys show $WALLET --bech val -a) ${STAKE_AMOUNT}urock \
-        --from $WALLET --chain-id $ZENROCK_CHAIN_ID --fees 30urock -y
+# 生成密钥
+function generate_keys() {
+    echo "正在生成密钥..."
+    cd $HOME
+    rm -rf zenrock-validators
+    git clone https://github.com/zenrocklabs/zenrock-validators
+    read -p "Enter password for the keys: " key_pass
+}
 
-    echo "委托质押完成！"
+# 输出ecdsa地址
+function output_ecdsa_address() {
+    echo "输出ecdsa地址..."
+    mkdir -p $HOME/.zrchain/sidecar/bin
+    mkdir -p $HOME/.zrchain/sidecar/keys
+    cd $HOME/zenrock-validators/utils/keygen/ecdsa && go build
+    cd $HOME/zenrock-validators/utils/keygen/bls && go build
+    ecdsa_output_file=$HOME/.zrchain/sidecar/keys/ecdsa.key.json
+    ecdsa_creation=$($HOME/zenrock-validators/utils/keygen/ecdsa/ecdsa --password $key_pass -output-file $ecdsa_output_file)
+    ecdsa_address=$(echo "$ecdsa_creation" | grep "Public address" | cut -d: -f2)
+    echo "请保存 ECDSA 地址后按任意键继续..."
+    read -n 1
+    bls_output_file=$HOME/.zrchain/sidecar/keys/bls.key.json
+    $HOME/zenrock-validators/utils/keygen/bls/bls --password $key_pass -output-file $bls_output_file
+    echo "ecdsa address: $ecdsa_address"
+}
+
+# 设置配置
+function set_operator_config() {
+    echo "设置配置..."
+    echo "请充值 Holesky $ETH 到钱包，然后输入 'yes' 继续"
+    read -p "是否已完成充值? (yes/no): " confirm
+    if [ "$confirm" != "yes" ]; then
+        echo "请在充值后重试."
+        return
+    fi
+
+    read -p "请输入测试网 Holesky 终端点: " TESTNET_HOLESKY_ENDPOINT
+    read -p "请输入主网终端点: " MAINNET_ENDPOINT
+    read -p "请输入测试网 Holesky RPC URL: " ETH_RPC_URL
+    read -p "请输入测试网 Holesky WebSocket URL: " ETH_WS_URL
+
+    OPERATOR_VALIDATOR_ADDRESS_TBD=$(zenrockd keys show wallet --bech val -a)
+    OPERATOR_ADDRESS_TBU=$ecdsa_address
+    EIGEN_OPERATOR_CONFIG="$HOME/.zrchain/sidecar/eigen_operator_config.yaml"
+    ECDSA_KEY_PATH=$ecdsa_output_file
+    BLS_KEY_PATH=$bls_output_file
+
+    cp $HOME/zenrock-validators/configs/eigen_operator_config.yaml $HOME/.zrchain/sidecar/
+    cp $HOME/zenrock-validators/configs/config.yaml $HOME/.zrchain/sidecar/
+
+    sed -i "s|EIGEN_OPERATOR_CONFIG|$EIGEN_OPERATOR_CONFIG|g" "$HOME/.zrchain/sidecar/config.yaml"
+    sed -i "s|TESTNET_HOLESKY_ENDPOINT|$TESTNET_HOLESKY_ENDPOINT|g" "$HOME/.zrchain/sidecar/config.yaml"
+    sed -i "s|MAINNET_ENDPOINT|$MAINNET_ENDPOINT|g" "$HOME/.zrchain/sidecar/config.yaml"
+    sed -i "s|OPERATOR_VALIDATOR_ADDRESS_TBD|$OPERATOR_VALIDATOR_ADDRESS_TBD|g" "$HOME/.zrchain/sidecar/eigen_operator_config.yaml"
+    sed -i "s|OPERATOR_ADDRESS_TBU|$OPERATOR_ADDRESS_TBU|g" "$HOME/.zrchain/sidecar/eigen_operator_config.yaml"
+    sed -i "s|ETH_RPC_URL|$ETH_RPC_URL|g" "$HOME/.zrchain/sidecar/eigen_operator_config.yaml"
+    sed -i "s|ETH_WS_URL|$ETH_WS_URL|g" "$HOME/.zrchain/sidecar/eigen_operator_config.yaml"
+    sed -i "s|ECDSA_KEY_PATH|$ECDSA_KEY_PATH|g" "$HOME/.zrchain/sidecar/eigen_operator_config.yaml"
+    sed -i "s|BLS_KEY_PATH|$BLS_KEY_PATH|g" "$HOME/.zrchain/sidecar/eigen_operator_config.yaml"
+
+    wget -O $HOME/.zrchain/sidecar/bin/validator_sidecar https://releases.gardia.zenrocklabs.io/validator_sidecar-1.2.3
+    chmod +x $HOME/.zrchain/sidecar/bin/validator_sidecar
+
+    sudo tee /etc/systemd/system/zenrock-testnet-sidecar.service > /dev/null <<EOF
+[Unit]
+Description=Validator Sidecar
+After=network-online.target
+
+[Service]
+User=$USER
+ExecStart=$HOME/.zrchain/sidecar/bin/validator_sidecar
+Restart=on-failure
+RestartSec=30
+LimitNOFILE=65535
+Environment="OPERATOR_BLS_KEY_PASSWORD=$key_pass"
+Environment="OPERATOR_ECDSA_KEY_PASSWORD=$key_pass"
+EOF
+    sudo systemctl daemon-reload
+    sudo systemctl enable zenrock-testnet-sidecar.service
+    sudo systemctl start zenrock-testnet-sidecar.service
+}
+
+# 备份 sidecar 配置和密钥
+function backup_sidecar_config() {
+    echo "正在备份 sidecar 配置和密钥..."
+    backup_dir="$HOME/.zrchain/sidecar_backup_$(date +%Y%m%d_%H%M%S)"
+    mkdir -p $backup_dir
+    cp -r $HOME/.zrchain/sidecar/* $backup_dir
+    echo "备份完成，备份路径为：$backup_dir"
+}
+
+# 检查日志
+function check_logs() {
+    echo "正在检查日志..."
+    journalctl -fu zenrock-testnet-sidecar.service -o cat
+}
+
+# 主菜单
+function setup_operator() {
+    echo "您可以执行以下验证器操作："
+    echo "1. 生成密钥" 
+    echo "2. 输出ecdsa地址" 
+    echo "3. 设置配置" 
+    echo "4. 检查日志" 
+    echo "5. 备份sidecar 配置和密钥"  
+    read -p "请输入选项（1-5）: " OPTION
+
+    case $OPTION in
+        1) generate_keys ;;
+        2) output_ecdsa_address ;;
+        3) set_operator_config ;;
+        4) check_logs" ;;
+        5) backup_sidecar_config ;;
+        *) echo "无效选项，请重新选择。" ;;
+    esac
 }
 
 # 主菜单函数
@@ -238,8 +349,9 @@ function main_menu() {
         echo "4) 查看节点同步状态"
         echo "5) 删除节点"
         echo "6) 创建验证人"
-        echo "7) 委托质押"
-        echo "8) 退出脚本"
+        echo "7) 查看余额"
+        echo "8) 设置操作员函数"
+        echo "9) 退出脚本"
 
         read -p "输入选项: " choice
 
@@ -263,9 +375,12 @@ function main_menu() {
                 create_validator
                 ;;
             7)
-                delegate_stake
+                check_balance
                 ;;
             8)
+                setup_operator
+                ;;
+            9)
                 echo "退出脚本。"
                 exit 0
                 ;;
