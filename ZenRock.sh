@@ -326,7 +326,7 @@ function setup_operator() {
         1) generate_keys ;;
         2) output_ecdsa_address ;;
         3) set_operator_config ;;
-        4) check_logs" ;
+        4) check_logs ;;  # 修正了这里的语法错误
         5) backup_sidecar_config ;;
         *) echo "无效选项，请重新选择。" ;;
     esac
