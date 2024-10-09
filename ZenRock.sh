@@ -324,6 +324,13 @@ function setup_operator() {
     esac
 }
 
+# 委托验证者函数
+function delegate_validator() {
+    echo "正在委托验证者..."
+    zenrockd tx validation delegate $(zenrockd keys show wallet --bech val -a) 1000000urock --from wallet --chain-id gardia-2 --gas-adjustment 1.4 --gas auto --gas-prices 25urock -y
+    echo "委托完成！"
+}
+
 # 主菜单函数
 function main_menu() {
     while true; do
@@ -339,11 +346,12 @@ function main_menu() {
         echo "2) 创建钱包"
         echo "3) 导入钱包"
         echo "4) 查看节点同步状态"
-        echo "5) 删除节点"
+        echo "5) 委托验证者"
         echo "6) 创建验证人"
         echo "7) 查看余额"
         echo "8) 设置操作员函数"
-        echo "9) 退出脚本"
+        echo "9) 删除节点" 
+        echo "10) 退出脚本"  
 
         read -p "输入选项: " choice
 
@@ -361,7 +369,7 @@ function main_menu() {
                 check_sync_status
                 ;;
             5)
-                delete_node
+                delegate_validator
                 ;;
             6)
                 create_validator
@@ -373,6 +381,9 @@ function main_menu() {
                 setup_operator
                 ;;
             9)
+                delete_node
+                ;;
+            10)
                 echo "退出脚本。"
                 exit 0
                 ;;
