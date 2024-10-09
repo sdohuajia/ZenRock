@@ -170,9 +170,8 @@ function create_validator() {
     echo "正在创建验证人..."
     cd $HOME
 
-    # 获取用户输入的 Moniker 和 Email
-    MONIKER="${MONIKER:-$MONIKER}"  # 自动获取最上面用户填写的名称
-    read -p "请输入您的安全邮箱: " SECURITY_EMAIL
+    # 获取用户输入的 Moniker 和 ID
+    read -p "请输入您的 Moniker: " MONIKER  # 让用户自行输入 Moniker
     read -p "请输入您的 Keybase ID: " KEYBASE_ID  # 新增用户输入 Keybase ID
 
     # 创建验证人
