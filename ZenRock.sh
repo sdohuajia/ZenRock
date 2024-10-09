@@ -38,8 +38,9 @@ function deploy_script() {
         echo "Go 已安装，版本: $(go version)"
     fi
 
-  # 设置 Moniker
-  read -p "请输入您的 Moniker 名称: " MONIKER
+  # 让用户输入 MONIKER 名称
+    read -p "请输入您的 MONIKER 名称: " MONIKER
+    echo "您输入的 MONIKER 名称是: $MONIKER"
 
   # 下载二进制文件
   mkdir -p $HOME/.zrchain/cosmovisor/genesis/bin
@@ -133,26 +134,14 @@ sudo systemctl start zenrock-testnet.service
 function create_wallet() {
     echo "正在创建钱包..."
     zenrockd keys add $WALLET
-    WALLET_ADDRESS=$(zenrockd keys show $WALLET -a)
-    
-    echo "export WALLET_ADDRESS=\"$WALLET_ADDRESS\"" >> $HOME/.bash_profile
-    source $HOME/.bash_profile
-
     echo "钱包创建完成！"
-    echo "钱包地址: $WALLET_ADDRESS"
 }
 
 # 导入钱包函数
 function import_wallet() {
     echo "正在导入钱包..."
     zenrockd keys add $WALLET --recover
-  
-
-    echo "export WALLET_ADDRESS=\"$WALLET_ADDRESS\"" >> $HOME/.bash_profile
-    source $HOME/.bash_profile
-
     echo "钱包导入完成！"
-    echo "钱包地址: $WALLET_ADDRESS"
 }
 
 # 查看日志
@@ -179,7 +168,7 @@ function create_validator() {
     cd $HOME
 
     # 获取用户输入的 Moniker 和 Email
-    read -p "请输入您的 Moniker 名称: " MONIKER
+    MONIKER="${MONIKER:-$MONIKER}"  # 自动获取最上面用户填写的名称
     read -p "请输入您的安全邮箱: " SECURITY_EMAIL
 
     # 创建验证人
@@ -326,7 +315,7 @@ function setup_operator() {
         1) generate_keys ;;
         2) output_ecdsa_address ;;
         3) set_operator_config ;;
-        4) check_logs ;;  # 修正了这里的语法错误
+        4) check_logs ;; 
         5) backup_sidecar_config ;;
         *) echo "无效选项，请重新选择。" ;;
     esac
