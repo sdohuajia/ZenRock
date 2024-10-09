@@ -173,6 +173,7 @@ function create_validator() {
     # 获取用户输入的 Moniker 和 Email
     MONIKER="${MONIKER:-$MONIKER}"  # 自动获取最上面用户填写的名称
     read -p "请输入您的安全邮箱: " SECURITY_EMAIL
+    read -p "请输入您的 Keybase ID: " KEYBASE_ID  # 新增用户输入 Keybase ID
 
     # 创建验证人
     zenrockd tx validation create-validator <(cat <<EOF
