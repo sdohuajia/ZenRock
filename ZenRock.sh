@@ -133,14 +133,17 @@ sudo systemctl start zenrock-testnet.service
 # 创建钱包函数
 function create_wallet() {
     echo "正在创建钱包..."
-    zenrockd keys add $WALLET
+    WALLET_NAME="${WALLET_NAME:-wallet}"  # 如果 WALLET_NAME 未设置，则使用默认名称 'wallet'
+    zenrockd keys add "$WALLET_NAME"  # 使用钱包名称创建钱包
     echo "钱包创建完成！"
 }
+
 
 # 导入钱包函数
 function import_wallet() {
     echo "正在导入钱包..."
-    zenrockd keys add $WALLET --recover
+    WALLET="${WALLET:-wallet}"  # 如果 WALLET 未设置，则使用默认名称 'wallet'
+    zenrockd keys add "$WALLET" --recover  # 使用钱包名称导入钱包
     echo "钱包导入完成！"
 }
 
