@@ -392,7 +392,12 @@ function setup_operator() {
 # 委托验证者函数
 function delegate_validator() {
     echo "正在委托验证者..."
-    zenrockd tx validation delegate $(zenrockd keys show wallet --bech val -a) 1000000urock --from wallet --chain-id gardia-2 --gas-adjustment 1.4 --gas auto --gas-prices 25urock -y
+    
+    # 提示用户输入委托金额，默认值为 1000000
+    read -p "请输入委托金额 (默认 1000000): " amount
+    amount=${amount:-1000000}  # 如果用户没有输入，则使用默认值
+
+    zenrockd tx validation delegate $(zenrockd keys show wallet --bech val -a) "${amount}urock" --from wallet --chain-id gardia-2 --gas-adjustment 1.4 --gas auto --gas-prices 25urock -y
     echo "委托完成！"
 }
 
