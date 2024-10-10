@@ -38,9 +38,8 @@ function deploy_script() {
         echo "Go 已安装，版本: $(go version)"
     fi
 
-  # 让用户输入 MONIKER 名称
-    read -p "请输入您的 MONIKER 名称: " MONIKER
-    echo "您输入的 MONIKER 名称是: $MONIKER"
+  # 设置节点的名称
+  MONIKER="YOUR_MONIKER_GOES_HERE"  # 请在此处填写您的节点名称
 
   # 下载二进制文件
   mkdir -p $HOME/.zrchain/cosmovisor/genesis/bin
@@ -151,6 +150,76 @@ function import_wallet() {
 function check_sync_status() {
     echo "正在查看日志状态..."
     sudo journalctl -u zenrock-testnet.service -f --no-hostname -o cat
+    
+}
+# 查看同步高度函数
+function check_hight_status() {
+    local CONFIG_FILE="$HOME/.zrchain/config/config.toml"
+    
+    # 从 config.toml 中提取端口号
+    echo "提取端口号..."
+    local PORT
+    PORT=$(sed -n 's/.*laddr = "tcp:\/\/127.0.0.1:\([0-9]*\)".*/\1/p' "$CONFIG_FILE")
+
+    # 打印提取的端口号
+    echo "提取的端口号: $PORT"
+    
+    # 检查端口号是否提取成功
+    if [ -z "$PORT" ]; then
+        echo "无法从配置文件中提取端口号。"
+        read -n 1 -s -r -p "按任意键返回主菜单..."
+        return 1
+    fi
+    
+    # 构造 RPC URL
+    local RPC_URL="http://localhost:${PORT}"
+    
+    echo "查看同步状态..."
+
+    # 获取状态信息
+    local status
+    status=$(curl -s "$RPC_URL/status")
+
+    # 检查 curl 命令是否成功执行
+    if [ $? -ne 0 ]; then
+        echo "无法连接到本地 RPC 服务器。"
+        read -n 1 -s -r -p "按任意键返回主菜单..."
+        return 1
+    fi
+
+    # 检查 JSON 数据是否有效
+    if ! echo "$status" | jq . > /dev/null 2>&1; then
+        echo "无法解析 JSON 数据。"
+        read -n 1 -s -r -p "按任意键返回主菜单..."
+        return 1
+    fi
+
+    # 提取信息并格式化输出
+    echo "=== 同步状态信息 ==="
+
+    # 最新区块高度
+    local latest_block_height
+    latest_block_height=$(echo "$status" | jq -r '.result.sync_info.latest_block_height')
+    echo "最新区块高度: $latest_block_height"
+
+    # 最新区块时间
+    local latest_block_time
+    latest_block_time=$(echo "$status" | jq -r '.result.sync_info.latest_block_time')
+    echo "最新区块时间: $latest_block_time"
+
+    # 本地区块高度
+    echo "本地区块高度: $latest_block_height"
+
+    # 是否在同步中
+    local catching_up
+    catching_up=$(echo "$status" | jq -r '.result.sync_info.catching_up')
+    if [ "$catching_up" = "true" ]; then
+        echo "节点正在同步中..."
+    else
+        echo "节点已完全同步。"
+    fi
+
+    read -n 1 -s -r -p "按任意键返回主菜单..."
 }
 
 # 删除节点函数
@@ -341,13 +410,14 @@ function main_menu() {
         echo "1) 部署脚本"
         echo "2) 创建钱包"
         echo "3) 导入钱包"
-        echo "4) 查看节点同步状态"
+        echo "4) 查看节点同步状态"  # 保留原有命令
         echo "5) 创建验证人"
         echo "6) 委托验证者"
         echo "7) 查看余额"
         echo "8) 设置操作员函数"
-        echo "9) 删除节点" 
-        echo "10) 退出脚本"  
+        echo "9) 删除节点"  # 删除节点的命令
+        echo "10) 查看同步高度"  # 新增命令 10
+        echo "11) 退出脚本"  
 
         read -p "输入选项: " choice
 
@@ -362,7 +432,7 @@ function main_menu() {
                 import_wallet
                 ;;
             4)
-                check_sync_status
+                check_sync_status  # 调用查看节点同步状态函数
                 ;;
             5)
                 create_validator
@@ -377,9 +447,12 @@ function main_menu() {
                 setup_operator
                 ;;
             9)
-                delete_node
+                delete_node  # 删除节点的命令
                 ;;
             10)
+                check_hight_status  # 调用查看同步高度函数
+                ;;
+            11)
                 echo "退出脚本。"
                 exit 0
                 ;;
