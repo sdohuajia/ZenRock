@@ -342,8 +342,8 @@ function main_menu() {
         echo "2) 创建钱包"
         echo "3) 导入钱包"
         echo "4) 查看节点同步状态"
-        echo "5) 委托验证者"
-        echo "6) 创建验证人"
+        echo "5) 创建验证人"
+        echo "6) 委托验证者"
         echo "7) 查看余额"
         echo "8) 设置操作员函数"
         echo "9) 删除节点" 
@@ -365,10 +365,10 @@ function main_menu() {
                 check_sync_status
                 ;;
             5)
-                delegate_validator
+                create_validator
                 ;;
             6)
-                create_validator
+                delegate_validator 
                 ;;
             7)
                 check_balance
