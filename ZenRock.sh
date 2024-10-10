@@ -170,9 +170,8 @@ function create_validator() {
     echo "正在创建验证人..."
     cd $HOME
 
-    # 获取用户输入的 Moniker 和 ID
+    # 获取用户输入的 Moniker 
     read -p "请输入您的 Moniker: " MONIKER  # 让用户自行输入 Moniker
-    read -p "请输入您的 Keybase ID: " KEYBASE_ID  # 新增用户输入 Keybase ID
 
     # 创建验证人
     zenrockd tx validation create-validator <(cat <<EOF
@@ -180,9 +179,6 @@ function create_validator() {
   "pubkey": $(zenrockd comet show-validator),
   "amount": "1000000urock",
   "moniker": "$MONIKER",
-  "identity": "",
-  "website": "",
-  "security": "$SECURITY_EMAIL",
   "details": "I love blockchain ❤️",
   "commission-rate": "0.05",
   "commission-max-rate": "0.20",
@@ -192,10 +188,10 @@ function create_validator() {
 EOF
 ) \
 --chain-id gardia-2 \
---from $WALLET \
+--from wallet \
 --gas-adjustment 1.4 \
 --gas auto \
---gas-prices 0urock \
+--gas-prices 30urock \
 -y
 
     echo "验证人创建完成！"
