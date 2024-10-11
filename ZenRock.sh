@@ -39,7 +39,7 @@ function deploy_script() {
     fi
 
   # 设置节点的名称
-  MONIKER="YOUR_MONIKER_GOES_HERE"  # 请在此处填写您的节点名称
+  read -p "请输入您的节点名称 (MONIKER): " MONIKER  # 让用户输入节点名称
 
   # 下载二进制文件
   mkdir -p $HOME/.zrchain/cosmovisor/genesis/bin
