@@ -301,11 +301,6 @@ function output_ecdsa_address() {
 # 设置配置
 function set_operator_config() {
     echo "设置配置..."
-
-    # 设置密钥密码环境变量
-    export OPERATOR_BLS_KEY_PASSWORD="$key_pass"
-    export OPERATOR_ECDSA_KEY_PASSWORD="$key_pass"
-    
     echo "请充值 Holesky $ETH 到钱包，然后输入 'yes' 继续"
     read -p "是否已完成充值? (yes/no): " confirm
     if [ "$confirm" != "yes" ]; then
@@ -326,6 +321,10 @@ function set_operator_config() {
 
     cp $HOME/zenrock-validators/configs/eigen_operator_config.yaml $HOME/.zrchain/sidecar/
     cp $HOME/zenrock-validators/configs/config.yaml $HOME/.zrchain/sidecar/
+
+    # 设置密钥密码环境变量
+    export OPERATOR_BLS_KEY_PASSWORD="$key_pass"
+    export OPERATOR_ECDSA_KEY_PASSWORD="$key_pass"
 
     sed -i "s|EIGEN_OPERATOR_CONFIG|$EIGEN_OPERATOR_CONFIG|g" "$HOME/.zrchain/sidecar/config.yaml"
     sed -i "s|TESTNET_HOLESKY_ENDPOINT|$TESTNET_HOLESKY_ENDPOINT|g" "$HOME/.zrchain/sidecar/config.yaml"
