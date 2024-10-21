@@ -310,7 +310,8 @@ function set_operator_config() {
 
     read -p "请输入测试网 Holesky 终端点: " TESTNET_HOLESKY_ENDPOINT
     read -p "请输入主网终端点: " MAINNET_ENDPOINT
-    read -p "请输入测试网 Holesky RPC URL: " ETH_RPC_URL
+    read -p "请输入测试网 Holesky RPC URL (默认使用测试网终端点): " ETH_RPC_URL
+    ETH_RPC_URL=${ETH_RPC_URL:-$TESTNET_HOLESKY_ENDPOINT}  # 如果用户没有输入，则使用 TESTNET_HOLESKY_ENDPOINT
     read -p "请输入测试网 Holesky WebSocket URL: " ETH_WS_URL
 
     OPERATOR_VALIDATOR_ADDRESS_TBD=$(zenrockd keys show wallet --bech val -a)
