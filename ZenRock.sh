@@ -350,6 +350,7 @@ LimitNOFILE=65535
 Environment="OPERATOR_BLS_KEY_PASSWORD=$key_pass"
 Environment="OPERATOR_ECDSA_KEY_PASSWORD=$key_pass"
 Environment="SIDECAR_CONFIG_FILE=$HOME/.zrchain/sidecar/config.yaml"
+Environment="BLS_PRIVATE_KEY_PATH=/root/.zrchain/sidecar/keys/bls.key.json"
 
 [Install]
 WantedBy=multi-user.target
