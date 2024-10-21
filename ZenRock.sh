@@ -301,6 +301,11 @@ function output_ecdsa_address() {
 # 设置配置
 function set_operator_config() {
     echo "设置配置..."
+
+    # 设置密钥密码环境变量
+    export OPERATOR_BLS_KEY_PASSWORD="$key_pass"
+    export OPERATOR_ECDSA_KEY_PASSWORD="$key_pass"
+    
     echo "请充值 Holesky $ETH 到钱包，然后输入 'yes' 继续"
     read -p "是否已完成充值? (yes/no): " confirm
     if [ "$confirm" != "yes" ]; then
