@@ -322,10 +322,6 @@ function set_operator_config() {
     cp $HOME/zenrock-validators/configs/eigen_operator_config.yaml $HOME/.zrchain/sidecar/
     cp $HOME/zenrock-validators/configs/config.yaml $HOME/.zrchain/sidecar/
 
-    # 设置密钥密码环境变量
-    export OPERATOR_BLS_KEY_PASSWORD="$key_pass"
-    export OPERATOR_ECDSA_KEY_PASSWORD="$key_pass"
-
     sed -i "s|EIGEN_OPERATOR_CONFIG|$EIGEN_OPERATOR_CONFIG|g" "$HOME/.zrchain/sidecar/config.yaml"
     sed -i "s|TESTNET_HOLESKY_ENDPOINT|$TESTNET_HOLESKY_ENDPOINT|g" "$HOME/.zrchain/sidecar/config.yaml"
     sed -i "s|MAINNET_ENDPOINT|$MAINNET_ENDPOINT|g" "$HOME/.zrchain/sidecar/config.yaml"
