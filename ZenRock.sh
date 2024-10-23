@@ -309,15 +309,15 @@ function set_operator_config() {
     fi
 
     # 设置变量
-    EIGEN_OPERATOR_CONFIG="$HOME/.zrchain/sidecar/eigen_operator_config.yaml"
-    read -p "请输入测试网 Holesky 终端点: " TESTNET_HOLESKY_ENDPOINT
-    MAINNET_ENDPOINT="YOUR_ETH_MAINNET_ENDPOINT"  # 这里可以根据需要设置
-    OPERATOR_VALIDATOR_ADDRESS_TBD=$(zenrockd keys show wallet --bech val -a)
-    OPERATOR_ADDRESS_TBU=$ecdsa_address
-    ETH_RPC_URL=$TESTNET_HOLESKY_ENDPOINT  # 设置为与 TESTNET_HOLESKY_ENDPOINT 一致
-    read -p "请输入测试网 Holesky WebSocket URL: " ETH_WS_URL
-    ECDSA_KEY_PATH=$ecdsa_output_file
-    BLS_KEY_PATH=$bls_output_file
+EIGEN_OPERATOR_CONFIG="$HOME/.zrchain/sidecar/eigen_operator_config.yaml"
+read -p "请输入测试网 Holesky 终端点: " TESTNET_HOLESKY_ENDPOINT
+read -p "请输入主网 Ethereum 终端点: " MAINNET_ENDPOINT  # 让用户填写主网终端点
+OPERATOR_VALIDATOR_ADDRESS_TBD=$(zenrockd keys show wallet --bech val -a)
+OPERATOR_ADDRESS_TBU=$ecdsa_address
+ETH_RPC_URL=$TESTNET_HOLESKY_ENDPOINT  # 设置为与 TESTNET_HOLESKY_ENDPOINT 一致
+read -p "请输入测试网 Holesky WebSocket URL: " ETH_WS_URL
+ECDSA_KEY_PATH=$ecdsa_output_file
+BLS_KEY_PATH=$bls_output_file
 
     # 复制初始配置文件
     cp $HOME/zenrock-validators/configs/eigen_operator_config.yaml $HOME/.zrchain/sidecar/
